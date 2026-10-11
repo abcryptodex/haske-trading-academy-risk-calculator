@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ha">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080d1b">
+<title>Haske Trading Academy Pro</title>
+<style>
+:root{
+ --bg:#080d1b;--panel:#111a2d;--card:#19243b;
+ --border:#293650;--text:#f1f5ff;--muted:#94a3bb;
+ --green:#38d6b0;--red:#ff687e;--blue:#77a9ff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+ font-family:Arial,sans-serif;line-height:1.5}
+header{padding:22px 16px;border-bottom:1px solid var(--border)}
+header h1{font-size:23px;margin:0}
+header h1 span{color:var(--green)}
+header p{margin:6px 0 0;color:var(--muted);font-size:13px}
+nav{display:flex;gap:8px;padding:12px;overflow-x:auto;
+ position:sticky;top:0;background:var(--bg);z-index:5}
+button,input,select{font:inherit;border:1px solid var(--border);
+ border-radius:10px;padding:11px;background:var(--card);color:var(--text)}
+button{cursor:pointer;white-space:nowrap}
+button.active,button.primary{border-color:var(--green);color:var(--green)}
+main{max-width:1100px;margin:auto;padding:12px}
+section{background:var(--panel);border:1px solid var(--border);
+ border-radius:16px;padding:16px;margin-bottom:16px;scroll-margin-top:70px}
+h2{font-size:19px;margin:0 0 12px}
+h3{font-size:15px;margin:0 0 8px}
+small,.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--card);padding:13px;border-radius:11px;min-width:0}
+.stat span{display:block;font-size:12px;color:var(--muted)}
+.stat strong{display:block;font-size:18px;overflow-wrap:anywhere;margin-top:5px}
+label{display:block;font-size:12px;color:var(--muted);margin:9px 0 5px}
+input,select{width:100%;min-width:0}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{min-width:0}
+.row input{flex:1}
+.green{color:var(--green)}.red{color:var(--red)}
+.status{font-size:13px;color:var(--muted);margin:10px 0}
+.pill{display:inline-block;border:1px solid var(--border);border-radius:20px;
+ padding:5px 9px;font-size:12px;color:var(--muted);margin:3px}
+.result{background:var(--card);padding:12px;border-radius:10px;margin-top:12px}
+.result p{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+canvas{display:block;width:100%;height:260px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:420px}
+td,th{text-align:left;padding:10px 7px;border-bottom:1px solid var(--border)}
+a.exchange{display:inline-block;padding:9px 11px;margin:4px;
+ border:1px solid var(--border);border-radius:9px;text-decoration:none;color:var(--green)}
+footer{text-align:center;color:var(--muted);padding:22px;font-size:12px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header>
+<h1>HASKE <span>TRADING ACADEMY PRO</span></h1>
+<p>Market Intelligence · Technical Analysis · Risk Management</p>
+</header>
+
+<nav>
+<button class="active" data-go="market">Market</button>
+<button data-go="compare">Compare</button>
+<button data-go="analysis">Analysis</button>
+<button data-go="calculator">Calculator</button>
+<button data-go="journal">Journal</button>
+<button data-go="exchanges">Exchanges</button>
+</nav>
+
+<main>
+<section id="market">
+<h2>🔎 Coin Market Explorer</h2>
+<form id="searchForm" class="row">
+<input id="coinInput" value="BTC" placeholder="Coin name or symbol, e.g. BTC" required>
+<button class="primary">Search</button>
+</form>
+<p class="status" id="marketStatus" aria-live="polite">Preparing market data...</p>
+<div class="grid">
+<div class="stat"><span>Coin</span><strong id="coinName">Bitcoin</strong></div>
+<div class="stat"><span>Current Price</span><strong id="coinPrice">—</strong></div>
+<div class="stat"><span>24h Change</span><strong id="coinChange">—</strong></div>
+<div class="stat"><span>Market Cap</span><strong id="coinCap">—</strong></div>
+<div class="stat"><span>24h Volume</span><strong id="coinVolume">—</strong></div>
+<div class="stat"><span>24h High</span><strong id="coinHigh">—</strong></div>
+<div class="stat"><span>24h Low</span><strong id="coinLow">—</strong></div>
+<div class="stat"><span>Symbol</span><strong id="coinSymbol">BTC</strong></div>
+</div>
+</section>
+
+<section id="compare">
+<h2>🌐 Exchange Price Comparison</h2>
+<p class="muted">Za a nuna farashin da API ta dawo da shi. Idan API ta gaza, za a nuna kuskuren haɗin maimakon ƙirƙirar farashi.</p>
+<div class="row">
+<div style="flex:1"><label>Trading pair</label>
+<input id="pairInput" value="BTCUSDT"></div>
+<button id="compareBtn" class="primary" style="margin-top:24px">Compare</button>
+</div>
+<p class="status" id="compareStatus" aria-live="polite">Danna Compare domin neman farashi.</p>
+<div class="tablewrap">
+<table><thead><tr><th>Exchange</th><th>Price (USD/USDT)</th><th>Status</th></tr></thead>
+<tbody id="exchangeRows"></tbody></table>
+</div>
+<p class="status" id="spreadInfo"></p>
+</section>
+
+<section id="analysis">
+<h2>📊 Technical Analysis</h2>
+<div class="row">
+<div style="flex:1"><label>Chart timeframe</label>
+<select id="timeframe">
+<option value="15m">15 minutes</option>
+<option value="1h" selected>1 hour</option>
+<option value="4h">4 hours</option>
+<option value="1d">1 day</option>
+</select></div>
+<button id="refreshChart" style="margin-top:24px">Refresh Chart</button>
+</div>
+<p class="status" id="chartStatus" aria-live="polite">Waiting for chart data...</p>
+<canvas id="chart" aria-label="Candlestick chart"></canvas>
+<div class="grid">
+<div class="stat"><span>RSI (14)</span><strong id="rsi">—</strong></div>
+<div class="stat"><span>MACD (12,26)</span><strong id="macd">—</strong></div>
+<div class="stat"><span>SMA (20)</span><strong id="sma">—</strong></div>
+<div class="stat"><span>Trend vs SMA20</span><strong id="trend">—</strong></div>
+<div class="stat"><span>Recent Support</span><strong id="support">—</strong></div>
+<div class="stat"><span>Recent Resistance</span><strong id="resistance">—</strong></div>
+</div>
+<p class="muted">Indicators na taimaka wajen nazari ne kawai. Ba su tabbatar da inda farashi zai dosa ba.</p>
+</section>
+
+<section id="calculator">
+<h2>🧮 USD Risk Calculator</h2>
+<div class="grid">
+<div><label>Account Capital ($)</label><input id="capital" type="number" value="100" min="0.01" step="any"></div>
+<div><label>Entry Price ($)</label><input id="entry" type="number" value="100" min="0.00000001" step="any"></div>
+<div><label>Stop Loss ($)</label><input id="sl" type="number" value="97" min="0.00000001" step="any"></div>
+<div><label>Take Profit ($)</label><input id="tp" type="number" value="106" min="0.00000001" step="any"></div>
+<div><label>Risk (% of capital)</label><input id="riskPct" type="number" value="3" min="0.01" max="100" step="any"></div>
+<div><label>Leverage (x)</label><input id="lev" type="number" value="1" min="1" max="200" step="any"></div>
+<div><label>Direction</label><select id="direction"><option value="long">Long / Buy</option><option value="short">Short / Sell</option></select></div>
+<div><label>Fee per side (%)</label><input id="fee" type="number" value="0.1" min="0" step="any"></div>
+</div>
+<button id="calcBtn" class="primary" style="margin-top:14px">Calculate</button>
+<div class="result" id="calcResult" aria-live="polite">Shigar da bayanan trade domin yin lissafi.</div>
+</section>
+
+<section id="journal">
+<h2>📒 Trade Journal</h2>
+<div class="grid">
+<div><label>Coin</label><input id="jCoin" placeholder="BTC"></div>
+<div><label>Entry price ($)</label><input id="jEntry" type="number" min="0" step="any"></div>
+<div><label>Exit price ($)</label><input id="jExit" type="number" min="0" step="any"></div>
+<div><label>Position size (coin units)</label><input id="jSize" type="number" min="0" step="any"></div>
+<div><label>Direction</label><select id="jDirection"><option value="long">Long</option><option value="short">Short</option></select></div>
+</div>
+<button id="saveTrade" class="primary" style="margin-top:12px">Save Trade</button>
+<div class="grid" style="margin-top:12px">
+<div class="stat"><span>Total Trades</span><strong id="totalTrades">0</strong></div>
+<div class="stat"><span>Total P/L</span><strong id="totalPL">$0.00</strong></div>
+</div>
+<div class="tablewrap" style="margin-top:12px">
+<table><thead><tr><th>Coin</th><th>Direction</th><th>Entry</th><th>Exit</th><th>P/L</th><th>Action</th></tr></thead><tbody id="tradeRows"></tbody></table>
+</div>
+<button id="exportCsv" style="margin-top:12px">Export CSV</button>
+<button id="clearJournal" style="margin-top:12px">Clear Journal</button>
+<p class="status">Trades ana adana su a wannan browser ɗin ne. Share browser data na iya goge su.</p>
+</section>
+
+<section id="exchanges">
+<h2>🔗 Exchange Center</h2>
+<p class="muted">Official exchange websites. Wannan ba haɗin account ko izinin yin trading kai tsaye ba ne.</p>
+<a class="exchange" href="https://www.binance.com/" target="_blank" rel="noopener">Binance</a>
+<a class="exchange" href="https://www.mexc.com/" target="_blank" rel="noopener">MEXC</a>
+<a class="exchange" href="https://www.bybit.com/" target="_blank" rel="noopener">Bybit</a>
+<a class="exchange" href="https://www.bitunix.com/" target="_blank" rel="noopener">Bitunix</a>
+<a class="exchange" href="https://www.kucoin.com/" target="_blank" rel="noopener">KuCoin</a>
+<a class="exchange" href="https://www.gate.io/" target="_blank" rel="noopener">Gate.io</a>
+<a class="exchange" href="https://bingx.com/" target="_blank" rel="noopener">BingX</a>
+<a class="exchange" href="https://www.weex.com/" target="_blank" rel="noopener">WEEX</a>
+<a class="exchange" href="https://www.okx.com/" target="_blank" rel="noopener">OKX</a>
+<a class="exchange" href="https://www.htx.com/" target="_blank" rel="noopener">HTX</a>
+</section>
+</main>
+<footer>Haske Trading Academy Pro · Educational tool, not financial advice.</footer>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const fmt = n => Number.isFinite(n)
+ ? n.toLocaleString('en-US',{maximumFractionDigits:6}) : '—';
+const usd = n => Number.isFinite(n)
+ ? '$'+n.toLocaleString('en-US',{maximumFractionDigits:4}) : '—';
+
+let coinId='bitcoin',symbol='BTC',prices=[],candles=[],trades=[];
+try{trades=JSON.parse(localStorage.getItem('haskeJournal')||'[]');if(!Array.isArray(trades))trades=[]}catch(e){trades=[]}
+
+async function request(url){
+ const r=await fetch(url);
+ if(!r.ok)throw Error('HTTP '+r.status);
+ return r.json();
+}
+
+async function findCoin(query){
+ $('marketStatus').textContent='Ana neman coin...';
+ try{
+  const result=await request('https://api.coingecko.com/api/v3/search?query='+encodeURIComponent(query));
+  if(!result.coins?.length)throw Error('Ba a sami coin ɗin ba.');
+  const q=query.toLowerCase();
+  const found=result.coins.find(c=>c.id.toLowerCase()===q||c.symbol.toLowerCase()===q)||result.coins[0];
+  coinId=found.id;
+  await loadMarket();
+ }catch(e){$('marketStatus').textContent='Market search bai yi nasara ba: '+e.message}
+}
+
+async function loadMarket(){
+ $('marketStatus').textContent='Ana ɗauko bayanan kasuwa...';
+ try{
+  const d=await request('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids='+encodeURIComponent(coinId)+'&price_change_percentage=24h');
+  if(!d.length)throw Error('Babu market data.');
+  const c=d[0];symbol=c.symbol.toUpperCase();
+  $('coinName').textContent=c.name;
+  $('coinSymbol').textContent=symbol;
+  $('coinPrice').textContent=usd(c.current_price);
+  $('coinChange').textContent=fmt(c.price_change_percentage_24h)+'%';
+  $('coinChange').className=c.price_change_percentage_24h>=0?'green':'red';
+  $('coinCap').textContent=usd(c.market_cap);
+  $('coinVolume').textContent=usd(c.total_volume);
+  $('coinHigh').textContent=usd(c.high_24h);
+  $('coinLow').textContent=usd(c.low_24h);
+  $('marketStatus').textContent='An ɗauko bayanan kasuwa. Update: '+new Date().toLocaleTimeString();
+  $('pairInput').value=symbol+'USDT';
+  await loadChart();
+ }catch(e){$('marketStatus').textContent='An kasa ɗauko market data: '+e.message+'. Gwada daga baya.'}
+}
+
+const exchangeAPIs=[
+ {name:'Binance',url:p=>'https://api.binance.com/api/v3/ticker/price?symbol='+encodeURIComponent(p),get:d=>+d.price},
+ {name:'OKX',url:p=>'https://www.okx.com/api/v5/market/ticker?instId='+encodeURIComponent(p.replace(/USDT$/,'-USDT')),get:d=>+d.data?.[0]?.last},
+ {name:'Bybit',url:p=>'https://api.bybit.com/v5/market/tickers?category=spot&symbol='+encodeURIComponent(p),get:d=>+d.result?.list?.[0]?.lastPrice},
+ {name:'Gate.io',url:p=>'https://api.gateio.ws/api/v4/spot/tickers?currency_pair='+encodeURIComponent(p.replace(/USDT$/,'_USDT')),get:d=>+d[0]?.last},
+ {name:'KuCoin',url:p=>'https://api.kucoin.com/api/v1/market/orderbook/level1?symbol='+encodeURIComponent(p.replace(/USDT$/,'-USDT')),get:d=>+d.data?.price},
+ {name:'MEXC',url:p=>'https://api.mexc.com/api/v3/ticker/price?symbol='+encodeURIComponent(p),get:d=>+d.price},
+ {name:'HTX',url:p=>'https://api.huobi.pro/market/detail/merged?symbol='+encodeURIComponent(p.replace(/USDT$/,'').toLowerCase()),get:d=>+d.tick?.close},
+ {name:'BingX',url:p=>'https://open-api.bingx.com/openApi/spot/v1/ticker/24hr?symbol='+encodeURIComponent(p.replace(/USDT$/,'-USDT')),get:d=>+d.data?.[0]?.lastPrice},
+ {name:'WEEX',url:p=>'https://api-contract.weex.com/capi/v2/market/ticker?symbol='+encodeURIComponent(p),get:d=>+d.last},
+ {name:'Bitunix',url:p=>'https://fapi.bitunix.com/api/v1/futures/market/tickers?symbols='+encodeURIComponent(p),get:d=>+d.data?.[0]?.lastPrice}
+];
+
+async function comparePrices(){
+ const pair=$('pairInput').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+ if(!pair){$('compareStatus').textContent='Shigar da trading pair.';return}
+ $('compareStatus').textContent='Ana gwada haɗin exchanges...';
+ $('spreadInfo').textContent='';
+ const body=$('exchangeRows');body.replaceChildren();
+ const results=await Promise.all(exchangeAPIs.map(async ex=>{
+  const tr=document.createElement('tr');
+  const name=document.createElement('td');name.textContent=ex.name;
+  const price=document.createElement('td');price.textContent='—';
+  const status=document.createElement('td');status.textContent='Loading...';
+  tr.append(name,price,status);body.appendChild(tr);
+  try{
+   const data=await request(ex.url(pair));
+   const value=ex.get(data);
+   if(!Number.isFinite(value)||value<=0)throw Error('Pair/API response unavailable');
+   price.textContent=usd(value);status.textContent='Available';status.className='green';
+   return {name:ex.name,price:value};
+  }catch(e){
+   status.textContent='Unavailable';status.className='red';
+   return null;
+  }
+ }));
+ const good=results.filter(Boolean);
+ $('compareStatus').textContent='Exchanges da suka dawo da farashi: '+good.length+' / '+exchangeAPIs.length+'.';
+ if(good.length>=2){
+  const low=good.reduce((a,b)=>a.price<b.price?a:b);
+  const high=good.reduce((a,b)=>a.price>b.price?a:b);
+  const spread=(high.price-low.price)/low.price*100;
+  $('spreadInfo').textContent='Lowest: '+low.name+' ('+usd(low.price)+') · Highest: '+high.name+' ('+usd(high.price)+') · Difference: '+spread.toFixed(3)+'%. Wannan bambanci ba ya tabbatar da cewa za ka iya cin riba bayan fees, slippage da canja wurin kuɗi.';
+ }else $('spreadInfo').textContent='Babu isassun farashi domin kwatantawa. Pair ko API na iya zama ba ya samuwa.';
+}
+
+async function loadChart(){
+ $('chartStatus').textContent='Ana ɗauko candles daga Binance Spot...';
+ try{
+  const data=await request('https://api.binance.com/api/v3/klines?symbol='+encodeURIComponent(symbol+'USDT')+'&interval='+$('timeframe').value+'&limit=100');
+  candles=data.map(x=>({open:+x[1],high:+x[2],low:+x[3],close:+x[4]}));
+  prices=candles.map(x=>x.close);
+  drawChart();calcIndicators();
+  $('chartStatus').textContent='Binance Spot · '+symbol+'USDT · '+candles.length+' candles';
+ }catch(e){
+  candles=[];prices=[];drawChart();
+  ['rsi','macd','sma','trend','support','resistance'].forEach(id=>$(id).textContent='—');
+  $('chartStatus').textContent='Chart bai samu ba. Ana buƙatar Binance Spot pair mai inganci.';
+ }
+}
+
+function drawChart(){
+ const c=$('chart'),w=Math.max(c.clientWidth,280),h=260,ratio=window.devicePixelRatio||1;
+ c.width=w*ratio;c.height=h*ratio;
+ const ctx=c.getContext('2d');ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);
+ if(!candles.length){ctx.fillStyle='#94a3bb';ctx.font='14px Arial';ctx.fillText('Chart data unavailable',12,30);return}
+ const lo=Math.min(...candles.map(x=>x.low)),hi=Math.max(...candles.map(x=>x.high)),span=hi-lo||1;
+ const top=12,bottom=h-24,y=p=>bottom-(p-lo)/span*(bottom-top);
+ for(let i=0;i<5;i++){const yy=top+(bottom-top)*i/4;ctx.strokeStyle='#293650';ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(w,yy);ctx.stroke()}
+ const step=w/candles.length,cw=Math.max(1,step*.62);
+ candles.forEach((x,i)=>{
+  const xx=i*step+step/2,up=x.close>=x.open;
+  ctx.strokeStyle=up?'#38d6b0':'#ff687e';ctx.fillStyle=ctx.strokeStyle;
+  ctx.beginPath();ctx.moveTo(xx,y(x.high));ctx.lineTo(xx,y(x.low));ctx.stroke();
+  ctx.fillRect(xx-cw/2,Math.min(y(x.open),y(x.close)),cw,Math.max(1,Math.abs(y(x.open)-y(x.close))));
+ });
+ ctx.fillStyle='#94a3bb';ctx.font='11px Arial';ctx.fillText(usd(hi),4,11);ctx.fillText(usd(lo),4,h-4);
+}
+
+function ema(a,n){
+ if(!a.length)return [];
+ const k=2/(n+1);let v=a[0];
+ return a.map((x,i)=>{v=i===0?x:x*k+v*(1-k);return v});
+}
+function calcIndicators(){
+ if(prices.length<27)return;
+ let gain=0,loss=0;
+ for(let i=prices.length-14;i<prices.length;i++){
+  const d=prices[i]-prices[i-1];if(d>0)gain+=d;else loss-=d;
+ }
+ const r=loss===0?100:100-100/(1+(gain/14)/(loss/14));
+ const sma=prices.slice(-20).reduce((a,b)=>a+b,0)/20;
+ const f=ema(prices,12),s=ema(prices,26);
+ const m=f[f.length-1]-s[s.length-1],last=prices[prices.length-1];
+ $('rsi').textContent=r.toFixed(2);
+ $('macd').textContent=usd(m);
+ $('sma').textContent=usd(sma);
+ $('trend').textContent=last>=sma?'Above SMA · bullish bias':'Below SMA · bearish bias';
+ $('support').textContent=usd(Math.min(...candles.slice(-20).map(x=>x.low)));
+ $('resistance').textContent=usd(Math.max(...candles.slice(-20).map(x=>x.high)));
+}
+
+function calculate(){
+ const capital=+$('capital').value,entry=+$('entry').value,sl=+$('sl').value,tp=+$('tp').value;
+ const risk=+$('riskPct').value,lev=+$('lev').value,fee=+$('fee').value/100,dir=$('direction').value;
+ if(![capital,entry,sl,tp,risk,lev,fee].every(Number.isFinite)||capital<=0||entry<=0||sl<=0||tp<=0||risk<=0||risk>100||lev<1||fee<0){
+  $('calcResult').textContent='Duba duk bayanai; dole su zama ingantattun lambobi.';return;
+ }
+ const rd=dir==='long'?entry-sl:sl-entry,wd=dir==='long'?tp-entry:entry-tp;
+ if(rd<=0||wd<=0){$('calcResult').textContent='SL da TP ba su dace da direction ɗin da ka zaɓa ba.';return}
+ const riskUSD=capital*risk/100,qty=riskUSD/rd,notional=qty*entry;
+ const entryFee=notional*fee,exitLossFee=qty*sl*fee,exitProfitFee=qty*tp*fee;
+ const grossProfit=qty*wd,netProfit=grossProfit-entryFee-exitProfitFee;
+ const totalLoss=riskUSD+entryFee+exitLossFee;
+ const be=dir==='long'?entry*(1+fee)/(1-fee):entry*(1-fee)/(1+fee);
+ const rr=wd/rd;
+ $('calcResult').innerHTML=
+ '<p><span>Risk budget</span><b>'+usd(riskUSD)+'</b></p>'+
+ '<p><span>Position size</span><b>'+fmt(qty)+' coins</b></p>'+
+ '<p><span>Position value</span><b>'+usd(notional)+'</b></p>'+
+ '<p><span>Estimated margin</span><b>'+usd(notional/lev)+'</b></p>'+
+ '<p><span>Risk : Reward</span><b>1 : '+rr.toFixed(2)+'</b></p>'+
+ '<p><span>Gross target profit</span><b class="green">'+usd(grossProfit)+'</b></p>'+
+ '<p><span>Estimated net profit after fees</span><b class="green">'+usd(netProfit)+'</b></p>'+
+ '<p><span>Estimated loss incl. fees</span><b class="red">'+usd(totalLoss)+'</b></p>'+
+ '<p><span>Estimated break-even price</span><b>'+usd(be)+'</b></p>';
+}
+
+function persist(){try{localStorage.setItem('haskeJournal',JSON.stringify(trades))}catch(e){}}
+function renderTrades(){
+ $('totalTrades').textContent=trades.length;
+ const total=trades.reduce((s,t)=>s+t.pl,0);
+ $('totalPL').textContent=usd(total);$('totalPL').className=total>=0?'green':'red';
+ const body=$('tradeRows');body.replaceChildren();
+ trades.forEach((t,i)=>{
+  const tr=document.createElement('tr');
+  [t.coin,t.direction,usd(t.entry),usd(t.exit),usd(t.pl)].forEach(v=>{
+   const td=document.createElement('td');td.textContent=v;tr.appendChild(td);
+  });
+  const td=document.createElement('td'),btn=document.createElement('button');
+  btn.textContent='Delete';btn.addEventListener('click',()=>{trades.splice(i,1);persist();renderTrades()});
+  td.appendChild(btn);tr.appendChild(td);body.appendChild(tr);
+ });
+}
+$('saveTrade').addEventListener('click',()=>{
+ const coin=$('jCoin').value.trim().toUpperCase(),entry=+$('jEntry').value,exit=+$('jExit').value,size=+$('jSize').value,dir=$('jDirection').value;
+ if(!coin||![entry,exit,size].every(Number.isFinite)||entry<=0||exit<=0||size<=0){alert('Shigar da coin, entry, exit da position size masu inganci.');return}
+ const pl=(dir==='long'?exit-entry:entry-exit)*size;
+ trades.unshift({coin,entry,exit,size,direction:dir,pl,date:new Date().toISOString()});
+ persist();renderTrades();
+});
+$('clearJournal').addEventListener('click',()=>{if(confirm('Kana son goge duk tarihin trades?')){trades=[];persist();renderTrades()}});
+$('exportCsv').addEventListener('click',()=>{
+ const esc=x=>'"'+String(x).replace(/"/g,'""')+'"';
+ const lines=[['Coin','Entry','Exit','Size','Direction','P/L','Date'],...trades.map(t=>[t.coin,t.entry,t.exit,t.size,t.direction,t.pl,t.date])];
+ const blob=new Blob([lines.map(r=>r.map(esc).join(',')).join('\n')],{type:'text/csv'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='haske-trades.csv';a.click();URL.revokeObjectURL(a.href);
+});
+
+$('searchForm').addEventListener('submit',e=>{e.preventDefault();const q=$('coinInput').value.trim();if(q)findCoin(q)});
+$('compareBtn').addEventListener('click',comparePrices);
+$('refreshChart').addEventListener('click',loadChart);
+$('timeframe').addEventListener('change',loadChart);
+$('calcBtn').addEventListener('click',calculate);
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
+ $(b.dataset.go).scrollIntoView({behavior:'smooth',block:'start'});
+}));
+window.addEventListener('resize',drawChart);
+renderTrades();calculate();loadMarket();
+</script>
+</body>
+</html>
